@@ -53,9 +53,14 @@ router.post('/session/start/:id', async (req, res) => {
 });
 
 router.get('/sessions', async (req, res) => {
-  const sessions = getAllSessions(); // função que retorna array de sessões
-  res.json(sessions);
+  try {
+    const sessions = listSessions(); // função que retorna array com as sessões
+    res.json(sessions);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao listar sessões', details: err.message });
+  }
 });
+
 
 router.get('/session/status/:id', async (req, res) => {
   try {
