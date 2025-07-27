@@ -78,6 +78,10 @@ async function createSession(sessionId, webhookUrl = null) {
   };
 }
 
+function listSessions() {
+  return Array.from(sessions.keys()); // retorna array com os IDs das sessões
+}
+
 function getSession(sessionId) {
   return sessions.get(sessionId);
 }
