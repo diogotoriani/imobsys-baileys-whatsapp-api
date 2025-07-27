@@ -9,7 +9,7 @@ const {
   DisconnectReason,
 } = require('@whiskeysockets/baileys');
 
-const { useRedisAuthState, deleteAuthState } = require('../helpers/redisAuth');
+const { useRedisAuthState, deleteAuthState } = require('./helpers/redisAuth');
 
 const sessions = new Map();           // sessionId => sock
 const sessionWebhooks = new Map();   // sessionId => webhook URL
