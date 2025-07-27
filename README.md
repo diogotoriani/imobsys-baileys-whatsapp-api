@@ -184,7 +184,7 @@ Se você iniciar uma sessão com um webhook definido, toda mensagem recebida ser
 npm install -g pm2
 pm2 start src/app.js --name baileys-api
 pm2 save
-pm2 save
+pm2 startup
 
 ```
 
