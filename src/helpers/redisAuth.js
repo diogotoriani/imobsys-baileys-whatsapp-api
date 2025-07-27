@@ -1,38 +1,56 @@
-const { createClient } = require('redis');
+const makeInMemoryStore = require('@whiskeysockets/baileys').makeInMemoryStore;
 
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-const redisClient = createClient({ url: redisUrl });
+function useRedisAuthState(sessionId) {
+  const credsKey = `session:${sessionId}:creds`;
 
-redisClient.on('error', (err) => {
-  console.error('Erro ao conectar ao Redis:', err);
-});
+  const state = {
+    creds: undefined,
+    keys: {
+      get: async (type, ids) => {
+        const key = `session:${sessionId}:keys:${type}`;
+        const data = await redisClient.hGetAll(key);
+        const parsed = {};
+        ids.forEach(id => {
+          if (data[id]) {
+            parsed[id] = JSON.parse(data[id]);
+          }
+        });
+        return parsed;
+      },
+      set: async (type, values) => {
+        const key = `session:${sessionId}:keys:${type}`;
+        const entries = {};
+        for (const id in values) {
+          entries[id] = JSON.stringify(values[id]);
+        }
+        await redisClient.hSet(key, entries);
+      }
+    }
+  };
 
-redisClient.connect();
+  const saveCreds = async () => {
+    await redisClient.set(credsKey, JSON.stringify(state.creds));
+  };
+
+  const init = async () => {
+    const credsData = await redisClient.get(credsKey);
+    if (credsData) {
+      state.creds = JSON.parse(credsData);
+    }
+  };
+
+  return {
+    state,
+    saveCreds,
+    init
+  };
+}
 
 module.exports = {
   redisClient,
-
-  // Salva dados da sessão (como credentials ou estado) com um TTL (opcional)
-  async saveSession(sessionId, data, ttlSeconds = 3600 * 24 * 7) {
-    await redisClient.set(`session:${sessionId}`, JSON.stringify(data), {
-      EX: ttlSeconds,
-    });
-  },
-
-  // Busca os dados de sessão
-  async getSession(sessionId) {
-    const data = await redisClient.get(`session:${sessionId}`);
-    return data ? JSON.parse(data) : null;
-  },
-
-  // Remove os dados de sessão
-  async deleteSession(sessionId) {
-    await redisClient.del(`session:${sessionId}`);
-  },
-
-  // Verifica se uma sessão existe
-  async hasSession(sessionId) {
-    const exists = await redisClient.exists(`session:${sessionId}`);
-    return exists === 1;
-  }
+  saveSession,
+  getSession,
+  deleteSession,
+  hasSession,
+  useRedisAuthState // ✅ agora exporta corretamente
 };
