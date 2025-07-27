@@ -1,126 +1,177 @@
-# Baileys WhatsApp API
+# 📲 Baileys WhatsApp API
 
-API REST para envio e recebimento de mensagens via WhatsApp usando a biblioteca [Baileys](https://github.com/WhiskeySockets/Baileys) com persistência de sessão em Redis e proteção por API Key.
-
----
-
-## Requisitos
-
-- Node.js 18+ Verifique o Node.js e npm instalados. 
-node -v
-npm -v
-
-
-- Redis rodando e acessível  
-Certifique-se que o Redis está instalado e rodando na máquina (ou em servidor acessível).
-Se não tiver Redis instalado no Ubuntu, pode instalar com:
-
-sudo apt update
-sudo apt install redis-server
-sudo systemctl enable redis-server
-sudo systemctl start redis-server
-
-Teste a conexão:
-redis-cli ping
-# Deve responder PONG
-
-
-
-- npm instalado  
+API REST construída com Express.js e a biblioteca [Baileys](https://github.com/WhiskeySockets/Baileys) para integração com WhatsApp Web, com suporte a múltiplas sessões, geração de QR Code, envio de mensagens, arquivos, localização, contatos, gerenciamento por webhook e persistência com Redis.
 
 ---
 
-## Instalação
+## 🚀 Instalação
 
-1. Clone este repositório:
+### 1. Clone o repositório
+```bash
+git clone https://github.com/seuusuario/seurepo.git
+cd seurepo
+```
 
-git clone https://seu-repo.git
-cd seu-repo
-
-
-
-
-2. Instale as dependências:
-
+### 2. Instale as dependências
+```bash
 npm install
+```
 
-3. Crie o arquivo .env na raiz com o conteúdo:
+### 3. Instale o Redis (obrigatório)
+```bash
+sudo apt update
+sudo apt install redis-server -y
+sudo systemctl enable redis
+sudo systemctl start redis
+```
 
-API_KEY=sua-chave-secreta-aqui
-REDIS_URL=redis://localhost:6379
+Verifique se está funcionando:
+```bash
+redis-cli ping
+# Deve retornar: PONG
+```
+
+### 4. Crie o arquivo `.env` (opcional)
+Você pode definir a porta e a chave de API:
+```
 PORT=3000
+API_KEY=sua-chave-secreta
+```
 
-Rodando o servidor
-
+### 5. Inicie o servidor
+```bash
 npm start
+```
 
-Uso da API
-Todas as requisições a rotas http://localhost:3000/api/... devem enviar o header:
-x-api-key: sua-chave-secreta-aqui
+---
 
-Endpoints principais
-POST /api/session/start/:id
-Inicia uma sessão WhatsApp com id :id. Retorna QR Code base64 para escanear.
+## 📌 Endpoints disponíveis
 
-GET /api/session/status/:id
-Retorna status da sessão (connected: true|false).
+> Todos os endpoints da API devem conter o header:
+>
+> `Authorization: Bearer SUA_API_KEY`
 
-DELETE /api/session/logout/:id
-Desconecta e remove a sessão.
+### ✅ Verificar se a API está rodando
+**GET /**
+```bash
+curl http://localhost:3000/
+```
 
-POST /api/check-number
-Verifica se um número está registrado no WhatsApp. JSON esperado:
+---
 
-{ "sessionId": "id", "number": "5511999999999" }
+### 🔐 Listar sessões ativas
+**GET /api/sessions**
+```bash
+curl -H "Authorization: Bearer SUA_API_KEY" http://localhost:3000/api/sessions
+```
 
-POST /api/send/text
-Envia mensagem texto. JSON:
-{ "sessionId": "id", "to": "5511999999999@s.whatsapp.net", "message": "Olá" }
+---
 
-POST /api/send/media
-Envia arquivo PDF, imagem ou doc em base64. JSON:
+### ▶️ Iniciar sessão (com ou sem webhook)
+**POST /api/session/start/:id**
 
-{ "sessionId": "id", "to": "...", "base64": "base64string", "filename": "arquivo.pdf" }
-
-POST /api/send/location
-Envia localização. JSON:
-
-{ "sessionId": "id", "to": "...", "lat": "-23.000", "lng": "-46.000", "name": "Local" }
-
-POST /api/send/contact
-Envia contato. JSON:
-
-{ "sessionId": "id", "to": "...", "name": "Nome", "phone": "5511999999999" }
-
-
-POST /api/send/group
-
-Envia mensagem para grupo. JSON:
-{ "sessionId": "id", "groupId": "grupo-id@s.whatsapp.net", "message": "Mensagem" }
-
-
-GET /api/groups/:sessionId
-Lista grupos que a sessão participa.
-
-Webhooks
-Ao iniciar a sessão, informe um webhookUrl no corpo JSON da rota /session/start/:id.
-Sua API receberá notificações de mensagens enviadas e recebidas.
-
+#### Com webhook:
+```bash
 curl -X POST http://localhost:3000/api/session/start/minhaSessao \
+  -H "Authorization: Bearer SUA_API_KEY" \
   -H "Content-Type: application/json" \
-  -H "x-api-key: sua-chave-aqui" \
-  -d '{"webhookUrl": "https://meu-webhook.exemplo.com/whatsapp"}'
+  -d '{ "webhook": "https://minhaapi.com/webhook" }'
+```
 
+**Resposta com QR code (base64)**
+```json
+{
+  "status": "QR_CODE",
+  "qr": "data:image/png;base64,..."
+}
+```
 
-Segurança
-Use uma API Key forte definida na variável API_KEY no .env.
+---
 
-Todas as rotas api/ exigem esse header x-api-key.
+### 📤 Enviar mensagem de texto
+**POST /api/send-message/:id**
+```bash
+curl -X POST http://localhost:3000/api/send-message/minhaSessao \
+  -H "Authorization: Bearer SUA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "to": "5581999999999", "message": "Olá!" }'
+```
 
-Observações
-A persistência das sessões usa Redis (endereço configurável via REDIS_URL).
+---
 
-Implemente limites e logs conforme necessário para seu ambiente.
+### 📍 Enviar localização
+**POST /api/send-location/:id**
+```bash
+curl -X POST http://localhost:3000/api/send-location/minhaSessao \
+  -H "Authorization: Bearer SUA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "to": "5581999999999", "latitude": -8.05, "longitude": -34.9, "name": "Recife" }'
+```
 
-Esta API é básica, adapte conforme suas necessidades.
+---
 
+### 📎 Enviar arquivo (PDF, imagem, etc.)
+**POST /api/send-file/:id**
+```bash
+curl -X POST http://localhost:3000/api/send-file/minhaSessao \
+  -H "Authorization: Bearer SUA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "5581999999999",
+    "filename": "arquivo.pdf",
+    "base64": "data:application/pdf;base64,..."
+  }'
+```
+
+---
+
+### 👤 Enviar contato
+**POST /api/send-contact/:id**
+```bash
+curl -X POST http://localhost:3000/api/send-contact/minhaSessao \
+  -H "Authorization: Bearer SUA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "to": "5581999999999", "contactName": "João", "contactPhone": "5581888888888" }'
+```
+
+---
+
+### 📴 Encerrar sessão
+**POST /api/session/logout/:id**
+```bash
+curl -X POST http://localhost:3000/api/session/logout/minhaSessao \
+  -H "Authorization: Bearer SUA_API_KEY"
+```
+
+---
+
+### 🧼 Limpar todas as sessões do Redis (caso necessário)
+**GET /api/clear-sessions**
+```bash
+curl -X GET http://localhost:3000/api/clear-sessions \
+  -H "Authorization: Bearer SUA_API_KEY"
+```
+
+---
+
+## 🧪 Webhook (opcional)
+Se você iniciar uma sessão com um webhook definido, toda mensagem recebida será disparada via `POST` para a URL informada no seguinte formato:
+
+```json
+{
+  "sessionId": "minhaSessao",
+  "from": "5581999999999",
+  "message": {
+    "text": "Olá!"
+  }
+}
+```
+
+---
+
+## 📄 Licença
+MIT License
+
+---
+
+Feito com 💚 usando [Baileys](https://github.com/WhiskeySockets/Baileys)
