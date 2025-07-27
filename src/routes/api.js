@@ -13,6 +13,7 @@ const {
   listGroups,
   logoutSession,
   checkNumber,
+  listSessions,
 } = require('../baileysManager');
 
 router.post('/session/start/:id', async (req, res) => {
