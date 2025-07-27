@@ -1,6 +1,6 @@
 const express = require('express');
 const { makeWASocket, DisconnectReason } = require('@whiskeysockets/baileys');
-const { useRedisAuthState } = require('../helpers/redisAuth');
+const { useRedisAuthState } = require('./helpers/redisAuth');
 
 const router = express.Router();
 
