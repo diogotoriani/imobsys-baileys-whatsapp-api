@@ -33,8 +33,10 @@ redis-cli ping
 # Deve retornar: PONG
 ```
 
-### 4. Crie o arquivo `.env` (opcional)
-Você pode definir a porta e a chave de API:
+### 4. Crie o arquivo `.env` 
+npm install dotenv
+
+crie o arquivo .env
 ```
 # Chave secreta para autenticação da API
 API_KEY=troque-por-uma-chave-muito-secreta
