@@ -36,8 +36,14 @@ redis-cli ping
 ### 4. Crie o arquivo `.env` (opcional)
 Você pode definir a porta e a chave de API:
 ```
+# Chave secreta para autenticação da API
+API_KEY=troque-por-uma-chave-muito-secreta
+
+# URL do Redis (padrão localhost)
+REDIS_URL=redis://localhost:6379
+
+# Porta onde a API vai rodar
 PORT=3000
-API_KEY=sua-chave-secreta
 ```
 
 ### 5. Inicie o servidor
