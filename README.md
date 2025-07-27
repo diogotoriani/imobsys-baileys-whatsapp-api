@@ -21,12 +21,14 @@ npm install
 ```bash
 sudo apt update
 sudo apt install redis-server -y
-sudo systemctl enable redis
-sudo systemctl start redis
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
 ```
 
 Verifique se está funcionando:
 ```bash
+sudo systemctl status redis-server
+
 redis-cli ping
 # Deve retornar: PONG
 ```
