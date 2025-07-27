@@ -51,6 +51,11 @@ router.post('/session/start/:id', async (req, res) => {
   }
 });
 
+router.get('/sessions', async (req, res) => {
+  const sessions = getAllSessions(); // função que retorna array de sessões
+  res.json(sessions);
+});
+
 router.get('/session/status/:id', async (req, res) => {
   try {
     const connected = await isConnected(req.params.id);
