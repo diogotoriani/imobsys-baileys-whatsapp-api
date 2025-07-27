@@ -202,4 +202,5 @@ module.exports = {
   listGroups,
   logoutSession,
   checkNumber,
+  listSessions,
 };
